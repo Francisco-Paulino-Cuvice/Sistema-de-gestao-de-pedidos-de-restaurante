@@ -21,6 +21,7 @@ Escolher um banco de dados NoSQL apropriado para o tema, justificando a escolha.
 • Firebase (tempo real).
 
 A justificativa deve considerar:
+
 • Estrutura dos dados.
 • Tipo de consultas necessárias.
 • Escalabilidade e desempenho.

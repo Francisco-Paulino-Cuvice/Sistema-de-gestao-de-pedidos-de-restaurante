@@ -1,7 +1,6 @@
 package bcc.SGPR.Controllers;
 
 import bcc.SGPR.Entities.Cliente;
-import bcc.SGPR.Entities.Pedido;
 import bcc.SGPR.Exceptions.ClienteNotFoundException;
 import bcc.SGPR.Services.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;

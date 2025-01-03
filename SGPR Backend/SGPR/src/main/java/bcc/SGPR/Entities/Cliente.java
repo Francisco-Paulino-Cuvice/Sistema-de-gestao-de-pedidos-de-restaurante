@@ -3,6 +3,8 @@ package bcc.SGPR.Entities;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Document(collection = "Clientes")
@@ -14,7 +16,33 @@ public class Cliente {
     private String telefone;
     private String email;
     private String endereco;
-    private Set<Item> historico;
+    private Set<HistoricoPedidos> historicoPedidos = new HashSet<>();
+
+    public static class HistoricoPedidos {
+        private String idPedido;
+        private LocalDateTime dataHoraPedido;
+        private Double valorTotal;
+
+        public HistoricoPedidos() {}
+
+        public HistoricoPedidos(String idPedido, Double valorTotal, LocalDateTime dataHoraPedido) {
+            this.idPedido = idPedido;
+            this.valorTotal = valorTotal;
+            this.dataHoraPedido = dataHoraPedido;
+        }
+
+        public String getIdPedido() {return idPedido;}
+
+        public void setIdPedido(String idPedido) {this.idPedido = idPedido;}
+
+        public LocalDateTime getDataHoraPedido() {return dataHoraPedido;}
+
+        public void setDataHoraPedido(LocalDateTime dataHoraPedido) {this.dataHoraPedido = dataHoraPedido;}
+
+        public Double getValorTotal() {return valorTotal;}
+
+        public void setValorTotal(Double valorTotal) {this.valorTotal = valorTotal;}
+    }
 
     public Cliente() {
     }
@@ -59,13 +87,11 @@ public class Cliente {
         this.endereco = endereco;
     }
 
-    public Set<Item> getHistorico() {
-        return historico;
+    public Set<HistoricoPedidos> getHistoricoPedidos() {
+        return historicoPedidos;
     }
 
-    public void setHistorico(Set<Item> historico) {
-        this.historico = historico;
-    }
+    public void setHistoricoPedidos(Set<HistoricoPedidos> historicoPedidos) {this.historicoPedidos = historicoPedidos;}
 
     @Override
     public String toString() {
@@ -75,7 +101,7 @@ public class Cliente {
                 ", telefone='" + telefone + '\'' +
                 ", email='" + email + '\'' +
                 ", endereco='" + endereco + '\'' +
-                ", historico=" + historico +
+                ", historicoPedidos=" + historicoPedidos +
                 '}';
     }
 }

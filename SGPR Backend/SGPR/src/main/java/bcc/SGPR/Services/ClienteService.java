@@ -12,9 +12,12 @@ import java.util.Optional;
 @Service
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
 
+    @Autowired
+    public ClienteService(ClienteRepository clienteRepository){
+        this.clienteRepository = clienteRepository;
+    }
 
     public Cliente create(Cliente cliente) {
         this.clienteRepository.save(cliente);
@@ -38,7 +41,7 @@ public class ClienteService {
         clienteOriginal.setClienteNome(cliente.getClienteNome());
         clienteOriginal.setEmail(cliente.getEmail());
         clienteOriginal.setEndereco(cliente.getEndereco());
-        clienteOriginal.setHistorico(cliente.getHistorico());
+        clienteOriginal.setHistoricoPedidos(cliente.getHistoricoPedidos());
         clienteOriginal.setTelefone(cliente.getTelefone());
 
         this.clienteRepository.save(clienteOriginal);

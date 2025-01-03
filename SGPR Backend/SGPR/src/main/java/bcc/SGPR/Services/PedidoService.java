@@ -10,6 +10,7 @@ import bcc.SGPR.Repositories.PedidoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +51,7 @@ public class PedidoService {
         clientePedido.setTelefone(cliente.getTelefone());
         pedido.setClientePedido(clientePedido);
 
+        //Convertendo Item para ItemPedido
         Set<Pedido.ItensPedido> itensPedido = pedido.getItensPedido().stream()
                 .map(item -> {
                     Pedido.ItensPedido itemPedido = new Pedido.ItensPedido();
@@ -61,11 +63,23 @@ public class PedidoService {
                 .collect(Collectors.toSet());
         pedido.setItensPedido(itensPedido);
 
+        //Calculando valor total do pedido
         double valorTotal = pedido.getItensPedido().stream()
                 .mapToDouble(Pedido.ItensPedido::getSubTotal)
                 .sum();
         pedido.setValorTotal(valorTotal);
 
+        //Convertendo Pedido para colocar no historico do cliente
+        Cliente.HistoricoPedidos pedidoNovo = new Cliente.HistoricoPedidos(
+                pedido.getIdPedido(),
+                pedido.getValorTotal(),
+                pedido.getDataHoraPedido()
+        );
+
+        //Adicionando pedido ao historico do cliente
+        cliente.getHistoricoPedidos().add(pedidoNovo);
+
+        this.clienteRepository.save(cliente);
         this.pedidoRepository.save(pedido);
         return pedido;
     }

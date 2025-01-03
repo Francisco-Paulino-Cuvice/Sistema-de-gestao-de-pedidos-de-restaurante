@@ -13,7 +13,7 @@ public class Item {
     private String nomeItem;
     private String descricao;
     private Double precoUnitario;
-    private Set<String> categoria;
+    private String categoria;
     private Set<String> alergicos;
 
     public Item() {
@@ -51,11 +51,11 @@ public class Item {
         this.precoUnitario = precoUnitario;
     }
 
-    public Set<String> getCategoria() {
+    public String getCategoria() {
         return categoria;
     }
 
-    public void setCategoria(Set<String> categoria) {
+    public void setCategoria(String categoria) {
         this.categoria = categoria;
     }
 

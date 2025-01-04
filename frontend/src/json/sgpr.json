@@ -1,0 +1,64 @@
+{
+  "menu": [
+    {
+      "idItem": "1",
+      "nomeItem": "Salada",
+      "descricao": "Salada de alface",
+      "precoUnitario": 12.99,
+      "categoria": "Frutas, legumes e vegetais",
+      "alergicos": [],
+      "id": "dbc9"
+    }
+  ],
+  "pedidos": [
+    {
+      "idPedido": "1",
+      "clientePedido": {
+        "clienteId": "1",
+        "clienteNome": "Francisco",
+        "endereco": "Rua 31, 87",
+        "telefone": "(19) 99263-4528"
+      },
+      "itensPedido": [
+        {
+          "idItem": "1",
+          "quantidade": 1,
+          "subTotal": 12.99
+        },
+        {
+          "idItem": "2",
+          "quantidade": 1,
+          "subTotal": 15.99
+        }
+      ],
+      "valorTotal": 28.98,
+      "statusPedido": "Entregue",
+      "dataHoraPedido": "2024-12-30T03:16:00",
+      "id": "420c"
+    }
+  ],
+  "clientes": [
+    {
+      "clienteId": "1",
+      "clienteNome": "Francisco",
+      "telefone": "(19) 99263-4528",
+      "email": "francisco.cuvice@hotmail.com",
+      "endereco": "Rua 31, 87",
+      "historicoPedidos": [
+        {
+          "idPedido": "1",
+          "dataHoraPedido": "2024-12-30T03:16:00",
+          "valorTotal": 28.98
+        }
+      ],
+      "id": "5711"
+    },
+    {
+      "id": "9e01",
+      "clienteNome": "Gabriel Martins Sousa",
+      "telefone": "35998586038",
+      "email": "gabrielmartinssousa@gmail.com",
+      "endereco": "Rua João Cardoso Lemos"
+    }
+  ]
+}

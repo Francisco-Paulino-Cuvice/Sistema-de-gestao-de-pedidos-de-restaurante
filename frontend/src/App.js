@@ -2,362 +2,142 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const App = () => {
-    const [menu, setMenu] = useState([]);
-    const [pedidos, setPedidos] = useState([]);
-    const [clientes, setClientes] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [menu, setMenu] = useState([]);
+  const apiUrl = 'http://localhost:3001'; // URL do seu servidor JSON
 
-    const [novoCliente, setNovoCliente] = useState({
-        clienteId: '',
-        clienteNome: '',
-        telefone: '',
-        email: '',
-        endereco: '',
-    });
+  // Carregar os dados automaticamente
+  useEffect(() => {
+    // Carrega os dados de clientes, pedidos e menu automaticamente
+    axios.get(`${apiUrl}/clientes`).then(response => setClientes(response.data));
+    axios.get(`${apiUrl}/pedidos`).then(response => setPedidos(response.data));
+    axios.get(`${apiUrl}/menu`).then(response => setMenu(response.data));
+  }, []);
 
-    const [novoItem, setNovoItem] = useState({
-        idItem: '',
-        nomeItem: '',
-        descricao: '',
-        precoUnitario: '',
-        categoria: '',
-        alergicos: [],
-        id: ''
-    });
+  // Função para adicionar cliente (usando dados pré-definidos)
+  const addCliente = async () => {
+    const newCliente = {
+      clienteNome: 'Novo Cliente',
+      telefone: '999999999',
+      email: 'novo@cliente.com',
+      endereco: 'Rua Exemplo, 123',
+    };
+    const response = await axios.post(`${apiUrl}/clientes`, newCliente);
+    setClientes([...clientes, response.data]);
+  };
 
-    const [novoPedido, setNovoPedido] = useState({
-        idPedido: '',
-        clientePedido: {},
-        itensPedido: [],
-        valorTotal: '',
-        statusPedido: '',
-    });
+  // Função para editar um cliente
+  const editCliente = async (clienteId) => {
+    const cliente = clientes.find(c => c.id === clienteId);
+    const updatedCliente = { ...cliente, clienteNome: 'Cliente Editado' }; // Simulação de edição
+    const response = await axios.put(`${apiUrl}/clientes/${clienteId}`, updatedCliente);
+    setClientes(clientes.map(c => (c.id === clienteId ? response.data : c)));
+  };
 
-    const api = axios.create({
-        baseURL: 'http://localhost:3001',
-    });
+  // Função para excluir um cliente
+  const deleteCliente = async (clienteId) => {
+    await axios.delete(`${apiUrl}/clientes/${clienteId}`);
+    setClientes(clientes.filter(c => c.id !== clienteId));
+  };
 
-    useEffect(() => {
-        // Fetch menu
-        api.get('/menu')
-            .then((response) => setMenu(response.data))
-            .catch((error) => console.error('Erro ao buscar menu:', error));
+  // Função para adicionar pedido (usando dados pré-definidos)
+  const addPedido = async () => {
+    const newPedido = {
+      clientePedido: {
+        clienteId: '1',
+        clienteNome: 'Francisco',
+        endereco: 'Rua 31, 87',
+        telefone: '(19) 99263-4528',
+      },
+      itensPedido: [
+        { idItem: '1', quantidade: 1, subTotal: 12.99 },
+        { idItem: '2', quantidade: 1, subTotal: 15.99 }
+      ],
+      valorTotal: 28.98,
+      statusPedido: 'Entregue',
+      dataHoraPedido: '2024-12-30T03:16:00'
+    };
+    const response = await axios.post(`${apiUrl}/pedidos`, newPedido);
+    setPedidos([...pedidos, response.data]);
+  };
 
-        // Fetch pedidos
-        api.get('/pedidos')
-            .then((response) => setPedidos(response.data))
-            .catch((error) => console.error('Erro ao buscar pedidos:', error));
+  // Função para adicionar item ao menu com o id correto e ordem desejada
+  const addItem = async () => {
+    // Pegando o último idItem do menu e incrementando
+    const lastItem = menu[menu.length - 1];
+    const newId = lastItem ? parseInt(lastItem.idItem) + 1 : 1; // Se não houver item, começa do ID 1
 
-        // Fetch clientes
-        api.get('/clientes')
-            .then((response) => setClientes(response.data))
-            .catch((error) => console.error('Erro ao buscar clientes:', error));
-    }, []);
-
-    // CRUD for Clientes
-    const handleClienteChange = (e) => {
-        setNovoCliente({ ...novoCliente, [e.target.name]: e.target.value });
+    const newItem = {
+      nomeItem: 'Novo Item',
+      descricao: 'Descrição do item',
+      precoUnitario: 20.99,
+      categoria: 'Categoria Exemplo',
+      alergicos: [],
+      idItem: newId.toString(),  // O idItem vai ser gerado depois de alergicos
+      id: 'dbc9'  // O id também é colocado no final, como você pediu
     };
 
-    const handleClienteSubmit = (e) => {
-        e.preventDefault();
-        const newCliente = { 
-            ...novoCliente, 
-            clienteId: clientes.length + 1, // Adiciona um ID numérico para clienteId
-            id: clientes.length + 1 // Adiciona um ID numérico para id
-        };
-        api.post('/clientes', newCliente)
-            .then(() => {
-                alert('Cliente criado com sucesso!');
-                setNovoCliente({ clienteId: '', clienteNome: '', telefone: '', email: '', endereco: '' });
-                return api.get('/clientes');
-            })
-            .then((response) => setClientes(response.data))
-            .catch((error) => console.error('Erro ao criar cliente:', error));
-    };
+    const response = await axios.post(`${apiUrl}/menu`, newItem);
+    setMenu([...menu, response.data]);
+  };
 
-    const handleDeleteCliente = (id) => {
-        console.log(`Deletando cliente com ID: ${id}`);
-        api.delete(`/clientes/${id}`)
-            .then(() => {
-                alert('Cliente deletado com sucesso!');
-                return api.get('/clientes');
-            })
-            .then((response) => setClientes(response.data))
-            .catch((error) => console.error('Erro ao deletar cliente:', error));
-    };
+  return (
+    <div>
+      <h1>CRUD de Clientes, Pedidos e Menu</h1>
 
-    const handleEditCliente = (cliente) => {
-        setNovoCliente(cliente);
-    };
+      {/* Botão para adicionar Cliente */}
+      <div>
+        <button onClick={addCliente}>Adicionar Cliente (Exemplo)</button>
+      </div>
 
-    const handleUpdateCliente = (e) => {
-        e.preventDefault();
-        api.put(`/clientes/${novoCliente.clienteId}`, novoCliente)
-            .then(() => {
-                alert('Cliente atualizado com sucesso!');
-                return api.get('/clientes');
-            })
-            .then((response) => setClientes(response.data))
-            .catch((error) => console.error('Erro ao atualizar cliente:', error));
-    };
+      {/* Lista de Clientes */}
+      <div>
+        <h2>Clientes</h2>
+        {clientes.map(cliente => (
+          <div key={cliente.id}>
+            <p>{cliente.clienteNome} - {cliente.telefone}</p>
+            <button onClick={() => editCliente(cliente.id)}>Editar Cliente</button>
+            <button onClick={() => deleteCliente(cliente.id)}>Deletar Cliente</button>
+          </div>
+        ))}
+      </div>
 
-    // CRUD for Menu
-    const handleItemChange = (e) => {
-        setNovoItem({ ...novoItem, [e.target.name]: e.target.value });
-    };
+      {/* Botão para adicionar Pedido */}
+      <div>
+        <button onClick={addPedido}>Adicionar Pedido (Exemplo)</button>
+      </div>
 
-    const handleItemSubmit = (e) => {
-        e.preventDefault();
-        const newItem = { 
-            ...novoItem, 
-            idItem: menu.length + 1, // Adiciona um ID numérico para idItem
-            id: menu.length + 1 // Adiciona um ID numérico para id
-        };
-        api.post('/menu', newItem)
-            .then(() => {
-                alert('Item criado com sucesso!');
-                setNovoItem({ idItem: '', nomeItem: '', descricao: '', precoUnitario: '', categoria: '', alergicos: [], id: '' });
-                return api.get('/menu');
-            })
-            .then((response) => setMenu(response.data))
-            .catch((error) => console.error('Erro ao criar item:', error));
-    };
+      {/* Lista de Pedidos */}
+      <div>
+        <h2>Pedidos</h2>
+        {pedidos.map(pedido => (
+          <div key={pedido.idPedido}>
+            <p>{pedido.clientePedido.clienteNome} - {pedido.valorTotal}</p>
+            <p>Status: {pedido.statusPedido}</p>
+            <p>Data: {pedido.dataHoraPedido}</p>
+          </div>
+        ))}
+      </div>
 
-    const handleDeleteItem = (id) => {
-        console.log(`Deletando item com ID: ${id}`);
-        api.delete(`/menu/${id}`)
-            .then(() => {
-                alert('Item deletado com sucesso!');
-                return api.get('/menu');
-            })
-            .then((response) => setMenu(response.data))
-            .catch((error) => console.error('Erro ao deletar item:', error));
-    };
+      {/* Botão para adicionar Item ao Menu */}
+      <div>
+        <button onClick={addItem}>Adicionar Item ao Menu (Exemplo)</button>
+      </div>
 
-    const handleEditItem = (item) => {
-        setNovoItem(item);
-    };
-
-    const handleUpdateItem = (e) => {
-        e.preventDefault();
-        api.put(`/menu/${novoItem.id}`, novoItem)
-            .then(() => {
-                alert('Item atualizado com sucesso!');
-                return api.get('/menu');
-            })
-            .then((response) => setMenu(response.data))
-            .catch((error) => console.error('Erro ao atualizar item:', error));
-    };
-
-    // CRUD for Pedidos
-    const handlePedidoChange = (e) => {
-        setNovoPedido({ ...novoPedido, [e.target.name]: e.target.value });
-    };
-
-    const handlePedidoSubmit = (e) => {
-        e.preventDefault();
-        const newPedido = { 
-            ...novoPedido, 
-            idPedido: pedidos.length + 1, // Adiciona um ID numérico para idPedido
-            id: pedidos.length + 1 // Adiciona um ID numérico para id
-        };
-        api.post('/pedidos', newPedido)
-            .then(() => {
-                alert('Pedido criado com sucesso!');
-                setNovoPedido({ idPedido: '', clientePedido: {}, itensPedido: [], valorTotal: '', statusPedido: '', id: '' });
-                return api.get('/pedidos');
-            })
-            .then((response) => setPedidos(response.data))
-            .catch((error) => console.error('Erro ao criar pedido:', error));
-    };
-
-    const handleDeletePedido = (id) => {
-        console.log(`Deletando pedido com ID: ${id}`);
-        api.delete(`/pedidos/${id}`)
-            .then(() => {
-                alert('Pedido deletado com sucesso!');
-                return api.get('/pedidos');
-            })
-            .then((response) => setPedidos(response.data))
-            .catch((error) => console.error('Erro ao deletar pedido:', error));
-    };
-
-    const handleEditPedido = (pedido) => {
-        setNovoPedido(pedido);
-    };
-
-    const handleUpdatePedido = (e) => {
-        e.preventDefault();
-        api.put(`/pedidos/${novoPedido.idPedido}`, novoPedido)
-            .then(() => {
-                alert('Pedido atualizado com sucesso!');
-                return api.get('/pedidos');
-            })
-            .then((response) => setPedidos(response.data))
-            .catch((error) => console.error('Erro ao atualizar pedido:', error));
-    };
-
-    return (
-        <div>
-            <h1>Menu</h1>
-            <ul>
-                {menu.map((item) => (
-                    <li key={item.id}>
-                        {item.nomeItem} - R${item.precoUnitario} ({item.categoria})
-                        <button onClick={() => handleDeleteItem(item.id)}>Deletar</button>
-                        <button onClick={() => handleEditItem(item)}>Editar</button>
-                    </li>
-                ))}
-            </ul>
-            <h2>Criar Novo Item</h2>
-            <form onSubmit={handleItemSubmit}>
-                <input
-                    name="nomeItem"
-                    placeholder="Nome do Item"
-                    value={novoItem.nomeItem}
-                    onChange={handleItemChange}
-                />
-                <input
-                    name="descricao"
-                    placeholder="Descrição"
-                    value={novoItem.descricao}
-                    onChange={handleItemChange}
-                />
-                <input
-                    name="precoUnitario"
-                    placeholder="Preço Unitário"
-                    value={novoItem.precoUnitario}
-                    onChange={handleItemChange}
-                />
-                <input
-                    name="categoria"
-                    placeholder="Categoria"
-                    value={novoItem.categoria}
-                    onChange={handleItemChange}
-                />
-                <input
-                    name="alergicos"
-                    placeholder="Alergênicos (separados por vírgula)"
-                    value={novoItem.alergicos}
-                    onChange={(e) =>
-                        setNovoItem({ ...novoItem, alergicos: e.target.value.split(',') })
-                    }
-                />
-                <button type="submit">Criar Item</button>
-            </form>
-
-            <h1>Pedidos</h1>
-            <ul>
-                {pedidos.map((pedido) => (
-                    <li key={pedido.idPedido}>
-                        Pedido #{pedido.idPedido} - Total: R${pedido.valorTotal} - Status: {pedido.statusPedido}
-                        <button onClick={() => handleDeletePedido(pedido.idPedido)}>Deletar</button>
-                        <button onClick={() => handleEditPedido(pedido)}>Editar</button>
-                    </li>
-                ))}
-            </ul>
-            <h2>Criar Novo Pedido</h2>
-            <form onSubmit={handlePedidoSubmit}>
-                <textarea
-                    name="clientePedido"
-                    placeholder="Dados do Cliente (JSON)"
-                    value={JSON.stringify(novoPedido.clientePedido)}
-                    onChange={(e) =>
-                        setNovoPedido({ ...novoPedido, clientePedido: JSON.parse(e.target.value) })
-                    }
-                />
-                <textarea
-                    name="itensPedido"
-                    placeholder="Itens do Pedido (JSON)"
-                    value={JSON.stringify(novoPedido.itensPedido)}
-                    onChange={(e) =>
-                        setNovoPedido({ ...novoPedido, itensPedido: JSON.parse(e.target.value) })
-                    }
-                />
-                <input
-                    name="valorTotal"
-                    placeholder="Valor Total"
-                    value={novoPedido.valorTotal}
-                    onChange={handlePedidoChange}
-                />
-                <input
-                    name="statusPedido"
-                    placeholder="Status"
-                    value={novoPedido.statusPedido}
-                    onChange={handlePedidoChange}
-                />
-                <button type="submit">Criar Pedido</button>
-            </form>
-
-            <h1>Clientes</h1>
-            <ul>
-                {clientes.map((cliente) => (
-                    <li key={cliente.clienteId}>
-                        {cliente.clienteNome} - {cliente.email}
-                        <button onClick={() => handleDeleteCliente(cliente.clienteId)}>Deletar</button>
-                        <button onClick={() => handleEditCliente(cliente)}>Editar</button>
-                    </li>
-                ))}
-            </ul>
-            <h2>Criar Novo Cliente</h2>
-            <form onSubmit={handleClienteSubmit}>
-                <input
-                    name="clienteNome"
-                    placeholder="Nome"
-                    value={novoCliente.clienteNome}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="telefone"
-                    placeholder="Telefone"
-                    value={novoCliente.telefone}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="email"
-                    placeholder="E-mail"
-                    value={novoCliente.email}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="endereco"
-                    placeholder="Endereço"
-                    value={novoCliente.endereco}
-                    onChange={handleClienteChange}
-                />
-                <button type="submit">Criar Cliente</button>
-            </form>
-
-            <h2>Editar Cliente</h2>
-            <form onSubmit={handleUpdateCliente}>
-                <input
-                    name="clienteNome"
-                    placeholder="Nome"
-                    value={novoCliente.clienteNome}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="telefone"
-                    placeholder="Telefone"
-                    value={novoCliente.telefone}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="email"
-                    placeholder="E-mail"
-                    value={novoCliente.email}
-                    onChange={handleClienteChange}
-                />
-                <input
-                    name="endereco"
-                    placeholder="Endereço"
-                    value={novoCliente.endereco}
-                    onChange={handleClienteChange}
-                />
-                <button type="submit">Atualizar Cliente</button>
-            </form>
-        </div>
-    );
+      {/* Lista de Menu */}
+      <div>
+        <h2>Menu</h2>
+        {menu.map(item => (
+          <div key={item.idItem}>
+            <p>{item.nomeItem} - {item.descricao} - R${item.precoUnitario}</p>
+            <p><strong>ID do Item:</strong> {item.idItem}</p>
+            <p><strong>ID:</strong> {item.id}</p>  {/* Exibindo o ID conforme desejado */}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default App;

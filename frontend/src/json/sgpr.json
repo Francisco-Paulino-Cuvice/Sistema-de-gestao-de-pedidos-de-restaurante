@@ -8,6 +8,33 @@
       "categoria": "Frutas, legumes e vegetais",
       "alergicos": [],
       "id": "dbc9"
+    },
+    {
+      "id": "2408",
+      "idItem": "2",
+      "nomeItem": "Novo Item",
+      "descricao": "Descrição do item",
+      "precoUnitario": 20.99,
+      "categoria": "Categoria Exemplo",
+      "alergicos": []
+    },
+    {
+      "id": "dbc9",
+      "nomeItem": "Novo Item",
+      "descricao": "Descrição do item",
+      "precoUnitario": 20.99,
+      "categoria": "Categoria Exemplo",
+      "alergicos": [],
+      "idItem": "3"
+    },
+    {
+      "id": "dbc9",
+      "nomeItem": "Novo Item",
+      "descricao": "Descrição do item",
+      "precoUnitario": 20.99,
+      "categoria": "Categoria Exemplo",
+      "alergicos": [],
+      "idItem": "4"
     }
   ],
   "pedidos": [
@@ -35,6 +62,30 @@
       "statusPedido": "Entregue",
       "dataHoraPedido": "2024-12-30T03:16:00",
       "id": "420c"
+    },
+    {
+      "id": "c72e",
+      "clientePedido": {
+        "clienteId": "1",
+        "clienteNome": "Francisco",
+        "endereco": "Rua 31, 87",
+        "telefone": "(19) 99263-4528"
+      },
+      "itensPedido": [
+        {
+          "idItem": "1",
+          "quantidade": 1,
+          "subTotal": 12.99
+        },
+        {
+          "idItem": "2",
+          "quantidade": 1,
+          "subTotal": 15.99
+        }
+      ],
+      "valorTotal": 28.98,
+      "statusPedido": "Entregue",
+      "dataHoraPedido": "2024-12-30T03:16:00"
     }
   ],
   "clientes": [
@@ -59,6 +110,21 @@
       "telefone": "35998586038",
       "email": "gabrielmartinssousa@gmail.com",
       "endereco": "Rua João Cardoso Lemos"
+    },
+    {
+      "id": "3",
+      "clienteId": 3,
+      "clienteNome": "Novo Cliente",
+      "telefone": "123456789",
+      "email": "novo@cliente.com",
+      "endereco": "Rua Nova, 123"
+    },
+    {
+      "id": "543b",
+      "clienteNome": "Novo Cliente",
+      "telefone": "999999999",
+      "email": "novo@cliente.com",
+      "endereco": "Rua Exemplo, 123"
     }
   ]
 }

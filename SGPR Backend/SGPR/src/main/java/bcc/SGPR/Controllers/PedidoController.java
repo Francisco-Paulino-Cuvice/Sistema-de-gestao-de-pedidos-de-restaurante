@@ -1,4 +1,5 @@
 package bcc.SGPR.Controllers;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import bcc.SGPR.Entities.Pedido;
 import bcc.SGPR.Exceptions.PedidoNotFoundException;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/pedido")
 @RestController
 public class PedidoController {

@@ -1,4 +1,5 @@
 package bcc.SGPR.Controllers;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import bcc.SGPR.Entities.Cliente;
 import bcc.SGPR.Exceptions.ClienteNotFoundException;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/cliente")
 @RestController
 public class ClienteController {

@@ -78,6 +78,15 @@ const App = () => {
     });
   };
 
+  // Remover Item do Pedido
+  const removeItemDoPedido = (index) => {
+    setNovoPedido({
+      ...novoPedido,
+      itensPedido: novoPedido.itensPedido.filter((_, i) => i !== index)
+    });
+  };
+
+
   // Adicionar Item
   const addItem = async () => {
     const response = await axios.post(`${apiUrl}/item`, novoItem);
@@ -324,10 +333,14 @@ const App = () => {
                   setNovoPedido({ ...novoPedido, itensPedido });
                 }}
               />
+
+              <button className="button" onClick={() => removeItemDoPedido(index)}>Remover item</button>
             </div>
           ))}
 
+          <br />
           <button className="button" onClick={addItemAoPedido}>Adicionar mais itens</button>
+
 
           <label className="label">Status:</label>
           <input

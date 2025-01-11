@@ -110,6 +110,80 @@ const App = () => {
     }
   };
 
+  // Função para editar cliente 
+  const updateCliente = async (clienteId) => {
+    const updatedCliente = {
+      clienteNome: 'Nome Atualizado',
+      telefone: '987654321',
+      email: 'novoemail@exemplo.com',
+      endereco: 'Novo endereco',
+      historicoPedidos: []
+    };
+    const response = await axios.put(`${apiUrl}/cliente/${clienteId}`, updatedCliente);
+    const updatedClientes = clientes.map(cliente => cliente.clienteId === clienteId ? response.data : cliente);
+    setClientes(updatedClientes);
+    setFilteredClientes(updatedClientes);
+  };
+
+  // Função para editar pedido
+  const updatePedido = async (pedidoId) =>{
+    const updatedPedido = {
+      clientePedido: {
+        clienteId: '677e6124c602b23f61158f59',
+      },
+      itensPedido: [
+        { idItem: '677e6608a1d8e82bd62710b2', quantidade: 2 },
+      ],
+      statusPedido: 'Em andamento',
+      dataHoraPedido: '2025-01-07T12:00:00'
+    };
+
+    const response = await axios.put(`${apiUrl}/pedido/${pedidoId}`, updatedPedido);
+    const updatedPedidos = pedidos.map(pedido => pedido.idPedido === pedidoId ? response.data : pedido);
+
+    setPedidos(updatedPedidos);
+    setFilteredPedidos(updatedPedidos);
+  };
+
+  // Função para editar item do menu
+  const updateItem = async (itemId) => {
+    const updatedItem = {
+      nomeItem: 'Item Atualizado',
+      descricao: 'Nova descrição',
+      precoUnitario: 25.99,
+      alergicos: []
+    };
+    const response = await axios.put(`${apiUrl}/item/${itemId}`, updatedItem);
+    const updatedMenu = menu.map(item => item.idItem == itemId ? response.data : item);
+    setMenu(updatedMenu);
+    setFilteredMenu(updatedMenu);
+  };
+
+
+  // Função para deletar cliente 
+  const deleteCliente = async (clienteId) =>{
+    await axios.delete(`${apiUrl}/cliente/${clienteId}`);
+    const remainingClientes = clientes.filter(cliente => cliente.clienteId !== clienteId);
+    setClientes(remainingClientes);
+    setFilteredClientes(remainingClientes);
+  }
+
+  // Função para deletar pedido
+  const deletePedido = async (pedidioId) =>{
+    await axios.delete(`${apiUrl}/pedido/${pedidioId}`);
+    const remainingPedidos = pedidos.filter(pedido => pedido.pedidioId !== pedidioId);
+    setPedidos(remainingPedidos);
+    setFilteredPedidos(remainingPedidos);
+  };
+
+  // Função para deletar item do menu
+  const deleteItem = async (itemId) =>{
+    await axios.delete(`${apiUrl}/item/${itemId}`);
+    const remainingMenu = menu.filter(item => item.idItem !== itemId);
+    setMenu(remainingMenu);
+    setFilteredMenu(remainingMenu);
+  };
+
   return (
     <div>
       <h1>CRUD de Clientes, Pedidos e Itens</h1>
@@ -135,7 +209,7 @@ const App = () => {
           />
           <button onClick={buscar}>Buscar</button>
         </div>
-      )}
+      )} 
 
       {/* Botão para adicionar Cliente */}
       <div>
@@ -148,6 +222,8 @@ const App = () => {
         {selectedOption === 'clientes' && filteredClientes.map(cliente => (
           <div key={cliente.clienteId}>
             <p>{cliente.clienteNome} - {cliente.telefone}</p>
+            <button onClick={() => updateCliente(cliente.clienteId)}>Atualizar</button>
+            <button onClick={() => deleteCliente(cliente.clienteId)}>Deletar</button>
           </div>
         ))}
       </div>
@@ -165,6 +241,8 @@ const App = () => {
             <p>{pedido.clientePedido.clienteNome} - {pedido.valorTotal}</p>
             <p>Status: {pedido.statusPedido}</p>
             <p>Data: {pedido.dataHoraPedido}</p>
+            <button onClick={() => updatePedido(pedido.idPedido)}>Atualizar</button>
+            <button onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
           </div>
         ))}
       </div>
@@ -181,11 +259,15 @@ const App = () => {
           <div key={item.idItem}>
             <p>{item.nomeItem} - {item.descricao} - R${item.precoUnitario}</p>
             <p><strong>ID do Item:</strong> {item.idItem}</p>
+            <button onClick={() => updateItem(item.idItem)}>Atualizar</button>
+            <button onClick={() => deleteItem(item.idItem)}>Deletar</button>
           </div>
         ))}
       </div>
     </div>
   );
+
 };
+
 
 export default App;

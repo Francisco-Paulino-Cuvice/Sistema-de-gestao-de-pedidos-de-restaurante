@@ -1,38 +1,165 @@
-.App {
+/*Defina uma cor dourada*/
+:root {
+  --golden: #dc9936;
+}
+
+body {
+  background-image: url('https://st2.depositphotos.com/3690537/5231/i/450/depositphotos_52318349-stock-photo-dining-out.jpg');
+  background-size: cover;
+  background-position: center;
+  color: #f1f1f1;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+body::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://st2.depositphotos.com/3690537/5231/i/450/depositphotos_52318349-stock-photo-dining-out.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px) brightness(50%);
+  z-index: -1;
+}
+
+
+/* Container Principal */
+.container {
+  padding: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Cabeçalho */
+.header {
+  text-align: center;
+  font-size: 2.5rem;
+  /*Cor dourada*/
+  color: var(--golden);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin-bottom: 40px;
+}
+
+.select-option {
+  background-color: rgba(0, 0, 0, 0.5); /* Fundo escuro e transparente */
+  color: #f1f1f1;
+  border: 1px solid #444;
+  padding: 12px;
+  margin-bottom: 30px;
+  width: 250px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+
+/* Formulário e Inputs */
+.form-section {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.form-title {
+  text-align: center;
+  color: var(--golden);
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+.input-field,
+.select-field {
+  background-color: #25242473;
+  color: #ffffff;
+  border: 1px solid #767676;
+  padding: 12px;
+  margin-bottom: 18px;
+  width: 100%;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.input-field:focus,
+.select-field:focus {
+  outline: none;
+  color: var(--golden);
+  box-shadow: 0 0 5px rgba(171, 68, 13, 0.8);
+}
+
+/* Rótulos */
+.label {
+  font-size: 1.1rem;
+  color: var(--golden);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Botões */
+.button {
+  background-color: var(--golden);
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.1rem;
+}
+
+.button:hover {
+  background-color: #dd5e1f;
+}
+
+/* Lista */
+.list-title {
+  color: #f1f1f1;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.list-item {
+  background-color: #44444448;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  justify-content: space-between;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
-.App-link {
-  color: #61dafb;
+.list-item p {
+  color: #d0d0d0;
+  font-size: 1.1rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.list-item button {
+  background-color: var(--golden);
+  border: none;
+  padding: 12px 20px;
+  color: #fff;
+  margin-left: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.list-item button:hover {
+  background-color: #dd5e1f;
+}
+
+.list-item button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(226, 75, 25, 0.8);
 }

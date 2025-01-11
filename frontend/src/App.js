@@ -1,273 +1,403 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './App.css';
+
 
 const App = () => {
   const [clientes, setClientes] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   const [menu, setMenu] = useState([]);
-  const [searchCliente, setSearchCliente] = useState('');
-  const [searchPedido, setSearchPedido] = useState('');
-  const [searchItem, setSearchItem] = useState('');
-  const [filteredClientes, setFilteredClientes] = useState([]);
-  const [filteredPedidos, setFilteredPedidos] = useState([]);
-  const [filteredMenu, setFilteredMenu] = useState([]);
   const [selectedOption, setSelectedOption] = useState('');
-  const apiUrl = 'http://localhost:8080'; // URL do seu servidor JSON
+  const apiUrl = 'http://localhost:8080';
 
-  // Carregar os dados automaticamente
+  // Estados para formulários
+  const [novoCliente, setNovoCliente] = useState({ clienteNome: '', telefone: '', email: '', endereco: '' });
+  const [novoPedido, setNovoPedido] = useState({ clienteId: '', itensPedido: [{ idItem: '', quantidade: 1 }], statusPedido: '', dataHoraPedido: '' });
+  const [novoItem, setNovoItem] = useState({ nomeItem: '', descricao: '', precoUnitario: '', categoria: '', alergicos: [] });
+  const [clienteEditando, setClienteEditando] = useState(null);
+  const [itemEditando, setItemEditando] = useState(null);
+  const [pedidoEditando, setPedidoEditando] = useState(null);
+
   useEffect(() => {
-    // Carrega os dados de clientes, pedidos e itens automaticamente
-    axios.get(`${apiUrl}/cliente`).then(response => {
-      setClientes(response.data);
-      setFilteredClientes(response.data);
-    });
-    axios.get(`${apiUrl}/pedido`).then(response => {
-      setPedidos(response.data);
-      setFilteredPedidos(response.data);
-    });
-    axios.get(`${apiUrl}/item`).then(response => {
-      setMenu(response.data);
-      setFilteredMenu(response.data);
-    });
+    axios.get(`${apiUrl}/cliente`).then(response => setClientes(response.data));
+    axios.get(`${apiUrl}/pedido`).then(response => setPedidos(response.data));
+    axios.get(`${apiUrl}/item`).then(response => setMenu(response.data));
   }, []);
 
-  // Função para adicionar cliente (usando dados fornecidos)
+  // Adicionar Cliente
   const addCliente = async () => {
-    const newCliente = {
-      clienteNome: 'Nome do Cliente',
-      telefone: '123456789',
-      email: 'email@exemplo.com',
-      endereco: 'Endereço do Cliente',
-      historicoPedidos: []
-    };
-    const response = await axios.post(`${apiUrl}/cliente`, newCliente);
+    const response = await axios.post(`${apiUrl}/cliente`, { ...novoCliente, historicoPedidos: [] });
     setClientes([...clientes, response.data]);
-    if (selectedOption === 'clientes') setFilteredClientes([...clientes, response.data]);
+    setNovoCliente({ clienteNome: '', telefone: '', email: '', endereco: '' });
   };
 
-  // Função para adicionar pedido (usando dados fornecidos)
+  // Adicionar Pedido
   const addPedido = async () => {
-    const newPedido = {
-      clientePedido: {
-        clienteId: '677e6124c602b23f61158f59',
-      },
-      itensPedido: [
-        { idItem: '677e6608a1d8e82bd62710b2', quantidade: 1 },
-      ],
-      statusPedido: 'Entregue',
-      dataHoraPedido: '2024-12-30T03:16:00'
-    };
-    const response = await axios.post(`${apiUrl}/pedido`, newPedido);
-    setPedidos([...pedidos, response.data]);
-    if (selectedOption === 'pedidos') setFilteredPedidos([...pedidos, response.data]);
+    try {
+      const dataAtual = new Date().toISOString(); // Pega a data e hora atual do computador
+
+      // Ajustando o formato do pedido
+      const novoPedidoComData = {
+        clientePedido: {
+          clienteId: novoPedido.clienteId,
+          clienteNome: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.clienteNome,
+          endereco: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.endereco,
+          telefone: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.telefone,
+        },
+        itensPedido: novoPedido.itensPedido.map(item => ({
+          idItem: item.idItem,
+          quantidade: item.quantidade,
+          subTotal: menu.find(menuItem => menuItem.idItem === item.idItem)?.precoUnitario * item.quantidade
+        })),
+        statusPedido: novoPedido.statusPedido,
+        dataHoraPedido: dataAtual,
+        valorTotal: novoPedido.itensPedido.reduce((total, item) => total + (menu.find(menuItem => menuItem.idItem === item.idItem)?.precoUnitario * item.quantidade), 0)
+      };
+
+      // Envia a requisição para o backend
+      const response = await axios.post(`${apiUrl}/pedido`, novoPedidoComData);
+      setPedidos([...pedidos, response.data]);
+      setNovoPedido({
+        clienteId: '',
+        itensPedido: [{ idItem: '', quantidade: 1 }],
+        statusPedido: '',
+        dataHoraPedido: ''
+      });
+
+      alert("Pedido adicionado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao adicionar pedido:", error);
+      alert("Houve um erro ao adicionar o pedido. Por favor, tente novamente mais tarde.");
+    }
   };
 
-  // Função para adicionar item ao menu (usando dados fornecidos)
+  // Adicionar Item
   const addItem = async () => {
-    const newItem = {
-      nomeItem: 'Novo Item',
-      descricao: 'Descrição do item',
-      precoUnitario: 20.99,
-      categoria: 'Categoria Exemplo',
-      alergicos: []
-    };
-    const response = await axios.post(`${apiUrl}/item`, newItem);
+    const response = await axios.post(`${apiUrl}/item`, novoItem);
     setMenu([...menu, response.data]);
-    if (selectedOption === 'itens') setFilteredMenu([...menu, response.data]);
+    setNovoItem({ nomeItem: '', descricao: '', precoUnitario: '', categoria: '', alergicos: [] });
   };
 
-  // Função para selecionar a opção de pesquisa
-  const handleOptionChange = (event) => {
-    setSelectedOption(event.target.value);
+  // Carregar dados no formulário ao clicar em "Editar" para Cliente
+  const preencherFormularioCliente = (cliente) => {
+    setNovoCliente({
+      clienteNome: cliente.clienteNome,
+      telefone: cliente.telefone,
+      email: cliente.email,
+      endereco: cliente.endereco
+    });
+    setClienteEditando(cliente.clienteId);
   };
 
-  // Funções para lidar com a mudança nas barras de pesquisa
-  const handleSearchChange = (event) => {
-    const value = event.target.value;
-    if (selectedOption === 'clientes') {
-      setSearchCliente(value);
-    } else if (selectedOption === 'pedidos') {
-      setSearchPedido(value);
-    } else if (selectedOption === 'itens') {
-      setSearchItem(value);
+  // Atualizar Cliente
+  const updateCliente = async () => {
+    if (!clienteEditando) return;
+    const response = await axios.put(`${apiUrl}/cliente/${clienteEditando}`, novoCliente);
+    setClientes(clientes.map(cliente =>
+      cliente.clienteId === clienteEditando ? response.data : cliente
+    ));
+    setNovoCliente({ clienteNome: '', telefone: '', email: '', endereco: '' });
+    setClienteEditando(null);
+  };
+
+  // Carregar dados no formulário ao clicar em "Editar" para Pedido
+  const preencherFormularioPedido = (pedido) => {
+    setNovoPedido({
+      clienteId: pedido.clientePedido.clienteId,
+      itensPedido: pedido.itensPedido.map(item => ({
+        idItem: item.idItem,
+        quantidade: item.quantidade
+      })),
+      statusPedido: pedido.statusPedido,
+      dataHoraPedido: pedido.dataHoraPedido
+    });
+    setPedidoEditando(pedido.idPedido);
+  };
+
+  // Atualizar Pedido
+  const updatePedido = async () => {
+    if (!pedidoEditando) return; // Verifica se existe um ID de pedido para atualizar
+
+    try {
+      const dataAtual = new Date().toISOString(); // Pega a data e hora atual do computador
+
+      // Ajustando o formato do pedido para atualização
+      const pedidoAtualizado = {
+        clientePedido: {
+          clienteId: novoPedido.clienteId,
+          clienteNome: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.clienteNome,
+          endereco: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.endereco,
+          telefone: clientes.find(cliente => cliente.clienteId === novoPedido.clienteId)?.telefone,
+        },
+        itensPedido: novoPedido.itensPedido.map(item => ({
+          idItem: item.idItem,
+          quantidade: item.quantidade,
+          subTotal: menu.find(menuItem => menuItem.idItem === item.idItem)?.precoUnitario * item.quantidade
+        })),
+        statusPedido: novoPedido.statusPedido,
+        dataHoraPedido: dataAtual,
+        valorTotal: novoPedido.itensPedido.reduce((total, item) => total + (menu.find(menuItem => menuItem.idItem === item.idItem)?.precoUnitario * item.quantidade), 0)
+      };
+
+      // Envia a requisição PUT para atualizar o pedido
+      const response = await axios.put(`${apiUrl}/pedido/${pedidoEditando}`, pedidoAtualizado);
+
+      // Atualiza o estado com os dados do pedido atualizado
+      setPedidos(pedidos.map(pedido =>
+        pedido.idPedido === pedidoEditando ? response.data : pedido
+      ));
+
+      // Limpa o formulário e o estado de edição
+      setNovoPedido({
+        clienteId: '',
+        itensPedido: [{ idItem: '', quantidade: 1 }],
+        statusPedido: '',
+        dataHoraPedido: ''
+      });
+      setPedidoEditando(null);
+
+      alert("Pedido atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar pedido:", error);
+      alert("Houve um erro ao atualizar o pedido. Por favor, tente novamente mais tarde.");
     }
   };
 
-  // Funções para buscar e filtrar os dados
-  const buscar = () => {
-    if (selectedOption === 'clientes') {
-      setFilteredClientes(clientes.filter(cliente =>
-        cliente.clienteNome.toLowerCase().includes(searchCliente.toLowerCase())
-      ));
-    } else if (selectedOption === 'pedidos') {
-      setFilteredPedidos(pedidos.filter(pedido =>
-        pedido.clientePedido.clienteNome.toLowerCase().includes(searchPedido.toLowerCase())
-      ));
-    } else if (selectedOption === 'itens') {
-      setFilteredMenu(menu.filter(item =>
-        item.nomeItem.toLowerCase().includes(searchItem.toLowerCase())
-      ));
-    }
+  // Carregar dados no formulário ao clicar em "Editar" para Item
+  const preencherFormularioItem = (item) => {
+    setNovoItem({
+      nomeItem: item.nomeItem,
+      descricao: item.descricao,
+      precoUnitario: item.precoUnitario,
+      categoria: item.categoria,
+      alergicos: item.alergicos
+    });
+    setItemEditando(item.idItem);
   };
 
-  // Função para editar cliente 
-  const updateCliente = async (clienteId) => {
-    const updatedCliente = {
-      clienteNome: 'Nome Atualizado',
-      telefone: '987654321',
-      email: 'novoemail@exemplo.com',
-      endereco: 'Novo endereco',
-      historicoPedidos: []
-    };
-    const response = await axios.put(`${apiUrl}/cliente/${clienteId}`, updatedCliente);
-    const updatedClientes = clientes.map(cliente => cliente.clienteId === clienteId ? response.data : cliente);
-    setClientes(updatedClientes);
-    setFilteredClientes(updatedClientes);
+  // Atualizar Item
+  const updateItem = async () => {
+    if (!itemEditando) return;
+    const response = await axios.put(`${apiUrl}/item/${itemEditando}`, novoItem);
+    setMenu(menu.map(item =>
+      item.idItem === itemEditando ? response.data : item
+    ));
+    setNovoItem({ nomeItem: '', descricao: '', precoUnitario: '', categoria: '', alergicos: [] });
+    setItemEditando(null);
   };
 
-  // Função para editar pedido
-  const updatePedido = async (pedidoId) =>{
-    const updatedPedido = {
-      clientePedido: {
-        clienteId: '677e6124c602b23f61158f59',
-      },
-      itensPedido: [
-        { idItem: '677e6608a1d8e82bd62710b2', quantidade: 2 },
-      ],
-      statusPedido: 'Em andamento',
-      dataHoraPedido: '2025-01-07T12:00:00'
-    };
-
-    const response = await axios.put(`${apiUrl}/pedido/${pedidoId}`, updatedPedido);
-    const updatedPedidos = pedidos.map(pedido => pedido.idPedido === pedidoId ? response.data : pedido);
-
-    setPedidos(updatedPedidos);
-    setFilteredPedidos(updatedPedidos);
-  };
-
-  // Função para editar item do menu
-  const updateItem = async (itemId) => {
-    const updatedItem = {
-      nomeItem: 'Item Atualizado',
-      descricao: 'Nova descrição',
-      precoUnitario: 25.99,
-      alergicos: []
-    };
-    const response = await axios.put(`${apiUrl}/item/${itemId}`, updatedItem);
-    const updatedMenu = menu.map(item => item.idItem == itemId ? response.data : item);
-    setMenu(updatedMenu);
-    setFilteredMenu(updatedMenu);
-  };
-
-
-  // Função para deletar cliente 
-  const deleteCliente = async (clienteId) =>{
+  // Deletar Cliente
+  const deleteCliente = async (clienteId) => {
     await axios.delete(`${apiUrl}/cliente/${clienteId}`);
-    const remainingClientes = clientes.filter(cliente => cliente.clienteId !== clienteId);
-    setClientes(remainingClientes);
-    setFilteredClientes(remainingClientes);
-  }
-
-  // Função para deletar pedido
-  const deletePedido = async (pedidioId) =>{
-    await axios.delete(`${apiUrl}/pedido/${pedidioId}`);
-    const remainingPedidos = pedidos.filter(pedido => pedido.pedidioId !== pedidioId);
-    setPedidos(remainingPedidos);
-    setFilteredPedidos(remainingPedidos);
+    setClientes(clientes.filter(cliente => cliente.clienteId !== clienteId));
   };
 
-  // Função para deletar item do menu
-  const deleteItem = async (itemId) =>{
+  // Deletar Pedido
+  const deletePedido = async (pedidoId) => {
+    await axios.delete(`${apiUrl}/pedido/${pedidoId}`);
+    setPedidos(pedidos.filter(pedido => pedido.idPedido !== pedidoId));
+  };
+
+  // Deletar Item
+  const deleteItem = async (itemId) => {
     await axios.delete(`${apiUrl}/item/${itemId}`);
-    const remainingMenu = menu.filter(item => item.idItem !== itemId);
-    setMenu(remainingMenu);
-    setFilteredMenu(remainingMenu);
+    setMenu(menu.filter(item => item.idItem !== itemId));
   };
 
   return (
-    <div>
-      <h1>CRUD de Clientes, Pedidos e Itens</h1>
+    <div className="container">
+      <h1 className="header">CRUD de Clientes, Pedidos e Itens</h1>
 
-      {/* Dropdown para selecionar a opção de pesquisa */}
-      <div>
-        <select value={selectedOption} onChange={handleOptionChange}>
-          <option value="">Selecione uma opção...</option>
-          <option value="clientes">Clientes</option>
-          <option value="pedidos">Pedidos</option>
-          <option value="itens">Itens</option>
-        </select>
-      </div>
+      <select
+        className="select-option"
+        value={selectedOption}
+        onChange={(e) => setSelectedOption(e.target.value)}
+      >
+        <option value="">Selecione...</option>
+        <option value="clientes">Clientes</option>
+        <option value="pedidos">Pedidos</option>
+        <option value="itens">Itens</option>
+      </select>
 
-      {/* Barra de Pesquisa */}
-      {selectedOption && (
-        <div>
+      {/* Formulário de Cliente */}
+      {selectedOption === 'clientes' && (
+        <div className="form-section">
+          <h2 className="form-title">Adicionar Cliente</h2>
           <input
+            className="input-field"
             type="text"
-            placeholder={`Pesquisar ${selectedOption}...`}
-            value={selectedOption === 'clientes' ? searchCliente : selectedOption === 'pedidos' ? searchPedido : searchItem}
-            onChange={handleSearchChange}
+            placeholder="Nome"
+            value={novoCliente.clienteNome}
+            onChange={(e) => setNovoCliente({ ...novoCliente, clienteNome: e.target.value })}
           />
-          <button onClick={buscar}>Buscar</button>
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Telefone"
+            value={novoCliente.telefone}
+            onChange={(e) => setNovoCliente({ ...novoCliente, telefone: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="email"
+            placeholder="Email"
+            value={novoCliente.email}
+            onChange={(e) => setNovoCliente({ ...novoCliente, email: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Endereço"
+            value={novoCliente.endereco}
+            onChange={(e) => setNovoCliente({ ...novoCliente, endereco: e.target.value })}
+          />
+          <button className="button" onClick={addCliente}>Adicionar Cliente</button>
+
+          <h3 className="list-title">Lista de Clientes</h3>
+          {clientes.map(cliente => (
+            <div key={cliente.clienteId} className="list-item">
+              <p>Nome: {cliente.clienteNome}</p>
+              <p>Telefone: {cliente.telefone}</p>
+              <p>Email: {cliente.email}</p>
+              <p>Endereço: {cliente.endereco}</p>
+              <button className="button" onClick={() => preencherFormularioCliente(cliente)}>Editar</button>
+              <button className="button" onClick={updateCliente}>Salvar Atualização</button>
+              <button className="button" onClick={() => deleteCliente(cliente.clienteId)}>Deletar</button>
+            </div>
+          ))}
         </div>
-      )} 
+      )}
 
-      {/* Botão para adicionar Cliente */}
-      <div>
-        <button onClick={addCliente}>Adicionar Cliente</button>
-      </div>
+      {/* Formulário de Pedido */}
+      {selectedOption === 'pedidos' && (
+        <div className="form-section">
+          <h2 className="form-title">{pedidoEditando ? "Editar Pedido" : "Adicionar Pedido"}</h2>
+          <label className="label">Selecione o Cliente:</label>
+          <select
+            className="select-field"
+            value={novoPedido.clienteId}
+            onChange={(e) => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
+          >
+            <option value="">Selecione o Cliente</option>
+            {clientes.map(cliente => (
+              <option key={cliente.clienteId} value={cliente.clienteId}>
+                {cliente.clienteId} - {cliente.clienteNome}
+              </option>
+            ))}
+          </select>
 
-      {/* Lista de Clientes */}
-      <div>
-        <h2>Clientes</h2>
-        {selectedOption === 'clientes' && filteredClientes.map(cliente => (
-          <div key={cliente.clienteId}>
-            <p>{cliente.clienteNome} - {cliente.telefone}</p>
-            <button onClick={() => updateCliente(cliente.clienteId)}>Atualizar</button>
-            <button onClick={() => deleteCliente(cliente.clienteId)}>Deletar</button>
-          </div>
-        ))}
-      </div>
+          <label className="label">Selecione o Item:</label>
+          <select
+            className="select-field"
+            value={novoPedido.itensPedido[0].idItem}
+            onChange={(e) => setNovoPedido({ ...novoPedido, itensPedido: [{ idItem: e.target.value, quantidade: novoPedido.itensPedido[0].quantidade }] })}
+          >
+            <option value="">Selecione o Item</option>
+            {menu.map(item => (
+              <option key={item.idItem} value={item.idItem}>
+                {item.idItem} - {item.nomeItem}
+              </option>
+            ))}
+          </select>
 
-      {/* Botão para adicionar Pedido */}
-      <div>
-        <button onClick={addPedido}>Adicionar Pedido</button>
-      </div>
+          <label className="label">Quantidade:</label>
+          <input
+            className="input-field"
+            type="number"
+            value={novoPedido.itensPedido[0].quantidade}
+            onChange={(e) => setNovoPedido({
+              ...novoPedido,
+              itensPedido: [{ idItem: novoPedido.itensPedido[0].idItem, quantidade: e.target.value }]
+            })}
+          />
 
-      {/* Lista de Pedidos */}
-      <div>
-        <h2>Pedidos</h2>
-        {selectedOption === 'pedidos' && filteredPedidos.map(pedido => (
-          <div key={pedido.idPedido}>
-            <p>{pedido.clientePedido.clienteNome} - {pedido.valorTotal}</p>
-            <p>Status: {pedido.statusPedido}</p>
-            <p>Data: {pedido.dataHoraPedido}</p>
-            <button onClick={() => updatePedido(pedido.idPedido)}>Atualizar</button>
-            <button onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
-          </div>
-        ))}
-      </div>
+          <label className="label">Status:</label>
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Status do Pedido"
+            value={novoPedido.statusPedido}
+            onChange={(e) => setNovoPedido({ ...novoPedido, statusPedido: e.target.value })}
+          />
 
-      {/* Botão para adicionar Item */}
-      <div>
-        <button onClick={addItem}>Adicionar Item</button>
-      </div>
+          <button className="button" onClick={pedidoEditando ? updatePedido : addPedido}>
+            {pedidoEditando ? "Salvar Atualização" : "Adicionar Pedido"}
+          </button>
 
-      {/* Lista de Itens */}
-      <div>
-        <h2>Itens</h2>
-        {selectedOption === 'itens' && filteredMenu.map(item => (
-          <div key={item.idItem}>
-            <p>{item.nomeItem} - {item.descricao} - R${item.precoUnitario}</p>
-            <p><strong>ID do Item:</strong> {item.idItem}</p>
-            <button onClick={() => updateItem(item.idItem)}>Atualizar</button>
-            <button onClick={() => deleteItem(item.idItem)}>Deletar</button>
-          </div>
-        ))}
-      </div>
+          <h3 className="list-title">Lista de Pedidos</h3>
+          {pedidos.map(pedido => (
+            <div key={pedido.idPedido} className="list-item">
+              <p><strong>Cliente:</strong> {pedido.clientePedido.clienteNome}</p>
+              <p><strong>Itens:</strong> {pedido.itensPedido.map(item => (
+                <span key={item.idItem}>
+                  {item.idItem} - Quantidade: {item.quantidade} | SubTotal: R${item.subTotal.toFixed(2)}
+                </span>
+              )).reduce((prev, curr) => [prev, ', ', curr])}</p>
+              <p><strong>Valor Total:</strong> R${pedido.valorTotal.toFixed(2)}</p>
+              <button className="button" onClick={() => preencherFormularioPedido(pedido)}>Editar</button>
+              <button className="button" onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
+            </div>
+          ))}
+
+        </div>
+      )}
+
+      {/* Formulário de Item */}
+      {selectedOption === 'itens' && (
+        <div className="form-section">
+          <h2 className="form-title">Adicionar Item</h2>
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Nome do Item"
+            value={novoItem.nomeItem}
+            onChange={(e) => setNovoItem({ ...novoItem, nomeItem: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Descrição"
+            value={novoItem.descricao}
+            onChange={(e) => setNovoItem({ ...novoItem, descricao: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="number"
+            placeholder="Preço"
+            value={novoItem.precoUnitario}
+            onChange={(e) => setNovoItem({ ...novoItem, precoUnitario: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Categoria"
+            value={novoItem.categoria}
+            onChange={(e) => setNovoItem({ ...novoItem, categoria: e.target.value })}
+          />
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Alergicos (separados por vírgula)"
+            value={novoItem.alergicos}
+            onChange={(e) => setNovoItem({ ...novoItem, alergicos: e.target.value.split(',').map(item => item.trim()) })}
+          />
+
+          <button className="button" onClick={addItem}>Adicionar Item</button>
+
+          <h3 className="list-title">Lista de Itens</h3>
+          {menu.map(item => (
+            <div key={item.idItem} className="list-item">
+              <p>{item.nomeItem} - R${item.precoUnitario}</p>
+              <button className="button" onClick={() => preencherFormularioItem(item)}>Editar</button>
+              <button className="button" onClick={updateItem}>Salvar Atualização</button>
+              <button className="button" onClick={() => deleteItem(item.idItem)}>Deletar</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
 };
-
 
 export default App;

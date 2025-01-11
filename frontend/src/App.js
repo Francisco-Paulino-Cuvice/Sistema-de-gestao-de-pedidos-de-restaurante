@@ -269,78 +269,108 @@ const App = () => {
       )}
 
       {/* Formulário de Pedido */}
-      {selectedOption === 'pedidos' && (
-        <div className="form-section">
-          <h2 className="form-title">{pedidoEditando ? "Editar Pedido" : "Adicionar Pedido"}</h2>
-          <label className="label">Selecione o Cliente:</label>
-          <select
-            className="select-field"
-            value={novoPedido.clienteId}
-            onChange={(e) => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
-          >
-            <option value="">Selecione o Cliente</option>
-            {clientes.map(cliente => (
-              <option key={cliente.clienteId} value={cliente.clienteId}>
-                {cliente.clienteId} - {cliente.clienteNome}
-              </option>
-            ))}
-          </select>
+{selectedOption === 'pedidos' && (
+  <div className="form-section">
+    <h2 className="form-title">{pedidoEditando ? "Editar Pedido" : "Adicionar Pedido"}</h2>
+    
+    {/* Selecione o Cliente */}
+    <label className="label">Selecione o Cliente:</label>
+    <select
+      className="select-field"
+      value={novoPedido.clienteId}
+      onChange={(e) => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
+    >
+      <option value="">Selecione o Cliente</option>
+      {clientes.map(cliente => (
+        <option key={cliente.clienteId} value={cliente.clienteId}>
+          {cliente.clienteId} - {cliente.clienteNome}
+        </option>
+      ))}
+    </select>
 
-          <label className="label">Selecione o Item:</label>
-          <select
-            className="select-field"
-            value={novoPedido.itensPedido[0].idItem}
-            onChange={(e) => setNovoPedido({ ...novoPedido, itensPedido: [{ idItem: e.target.value, quantidade: novoPedido.itensPedido[0].quantidade }] })}
-          >
-            <option value="">Selecione o Item</option>
-            {menu.map(item => (
-              <option key={item.idItem} value={item.idItem}>
-                {item.idItem} - {item.nomeItem}
-              </option>
-            ))}
-          </select>
+    {/* Selecione os Itens (checkboxes) */}
+    <label className="label">Selecione os Itens:</label>
+    {menu.map(item => (
+      <div key={item.idItem} className="checkbox-item">
+        <input
+          type="checkbox"
+          id={`item-${item.idItem}`}
+          checked={novoPedido.itensPedido.some(i => i.idItem === item.idItem)}
+          onChange={(e) => {
+            if (e.target.checked) {
+              // Adiciona o item ao pedido com quantidade 1
+              setNovoPedido({
+                ...novoPedido,
+                itensPedido: [
+                  ...novoPedido.itensPedido,
+                  { idItem: item.idItem, quantidade: 1 }
+                ]
+              });
+            } else {
+              // Remove o item do pedido
+              setNovoPedido({
+                ...novoPedido,
+                itensPedido: novoPedido.itensPedido.filter(i => i.idItem !== item.idItem)
+              });
+            }
+          }}
+        />
+        <label htmlFor={`item-${item.idItem}`}>{item.idItem} - {item.nomeItem}</label>
+      </div>
+    ))}
 
-          <label className="label">Quantidade:</label>
-          <input
-            className="input-field"
-            type="number"
-            value={novoPedido.itensPedido[0].quantidade}
-            onChange={(e) => setNovoPedido({
+    {/* Quantidade para cada item selecionado */}
+    {novoPedido.itensPedido.map((item, index) => (
+      <div key={index}>
+        <label className="label">Quantidade do Item {item.idItem}:</label>
+        <input
+          className="input-field"
+          type="number"
+          value={item.quantidade}
+          onChange={(e) => {
+            const updatedItems = [...novoPedido.itensPedido];
+            updatedItems[index].quantidade = e.target.value;
+            setNovoPedido({
               ...novoPedido,
-              itensPedido: [{ idItem: novoPedido.itensPedido[0].idItem, quantidade: e.target.value }]
-            })}
-          />
+              itensPedido: updatedItems
+            });
+          }}
+        />
+      </div>
+    ))}
 
-          <label className="label">Status:</label>
-          <input
-            className="input-field"
-            type="text"
-            placeholder="Status do Pedido"
-            value={novoPedido.statusPedido}
-            onChange={(e) => setNovoPedido({ ...novoPedido, statusPedido: e.target.value })}
-          />
+    {/* Status do Pedido */}
+    <label className="label">Status:</label>
+    <input
+      className="input-field"
+      type="text"
+      placeholder="Status do Pedido"
+      value={novoPedido.statusPedido}
+      onChange={(e) => setNovoPedido({ ...novoPedido, statusPedido: e.target.value })}
+    />
 
-          <button className="button" onClick={pedidoEditando ? updatePedido : addPedido}>
-            {pedidoEditando ? "Salvar Atualização" : "Adicionar Pedido"}
-          </button>
+    <button className="button" onClick={pedidoEditando ? updatePedido : addPedido}>
+      {pedidoEditando ? "Salvar Atualização" : "Adicionar Pedido"}
+    </button>
 
-          <h3 className="list-title">Lista de Pedidos</h3>
-          {pedidos.map(pedido => (
-            <div key={pedido.idPedido} className="list-item">
-              <p><strong>Cliente:</strong> {pedido.clientePedido.clienteNome}</p>
-              <p><strong>Itens:</strong> {pedido.itensPedido.map(item => (
-                <span key={item.idItem}>
-                  {item.idItem} - Quantidade: {item.quantidade} | SubTotal: R${item.subTotal.toFixed(2)}
-                </span>
-              )).reduce((prev, curr) => [prev, ', ', curr])}</p>
-              <p><strong>Valor Total:</strong> R${pedido.valorTotal.toFixed(2)}</p>
-              <button className="button" onClick={() => preencherFormularioPedido(pedido)}>Editar</button>
-              <button className="button" onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
-            </div>
-          ))}
+    <h3 className="list-title">Lista de Pedidos</h3>
+    {pedidos.map(pedido => (
+      <div key={pedido.idPedido} className="list-item">
+        <p><strong>Cliente:</strong> {pedido.clientePedido.clienteNome}</p>
+        <p><strong>Itens:</strong> {pedido.itensPedido.map(item => (
+          <span key={item.idItem}>
+            {item.idItem} - Quantidade: {item.quantidade} | SubTotal: R${item.subTotal.toFixed(2)}
+          </span>
+        )).reduce((prev, curr) => [prev, ', ', curr])}</p>
+        <p><strong>Valor Total:</strong> R${pedido.valorTotal.toFixed(2)}</p>
+        <button className="button" onClick={() => preencherFormularioPedido(pedido)}>Editar</button>
+        <button className="button" onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
+      </div>
+    ))}
+  </div>
+)}
 
-        </div>
-      )}
+
 
       {/* Formulário de Item */}
       {selectedOption === 'itens' && (
@@ -387,7 +417,7 @@ const App = () => {
           <h3 className="list-title">Lista de Itens</h3>
           {menu.map(item => (
             <div key={item.idItem} className="list-item">
-              <p>{item.nomeItem} - R${item.precoUnitario}</p>
+              <p>{item.nomeItem} - R${item.precoUnitario} - {item.alergicos} - {item.categoria}</p>
               <button className="button" onClick={() => preencherFormularioItem(item)}>Editar</button>
               <button className="button" onClick={updateItem}>Salvar Atualização</button>
               <button className="button" onClick={() => deleteItem(item.idItem)}>Deletar</button>

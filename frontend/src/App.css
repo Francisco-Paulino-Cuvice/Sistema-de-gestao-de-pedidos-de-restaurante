@@ -96,6 +96,7 @@ body::after {
   outline: none;
   color: var(--golden);
   box-shadow: 0 0 5px rgba(171, 68, 13, 0.8);
+  background-color: rgba(0, 0, 0, 0.864);
 }
 
 /* Rótulos */

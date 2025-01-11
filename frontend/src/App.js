@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
-
 const App = () => {
   const [clientes, setClientes] = useState([]);
   const [pedidos, setPedidos] = useState([]);
@@ -69,6 +68,14 @@ const App = () => {
       console.error("Erro ao adicionar pedido:", error);
       alert("Houve um erro ao adicionar o pedido. Por favor, tente novamente mais tarde.");
     }
+  };
+
+  // Adicionar Item ao Pedido
+  const addItemAoPedido = () => {
+    setNovoPedido({
+      ...novoPedido,
+      itensPedido: [...novoPedido.itensPedido, { idItem: '', quantidade: 1 }]
+    });
   };
 
   // Adicionar Item
@@ -269,108 +276,89 @@ const App = () => {
       )}
 
       {/* Formulário de Pedido */}
-{selectedOption === 'pedidos' && (
-  <div className="form-section">
-    <h2 className="form-title">{pedidoEditando ? "Editar Pedido" : "Adicionar Pedido"}</h2>
-    
-    {/* Selecione o Cliente */}
-    <label className="label">Selecione o Cliente:</label>
-    <select
-      className="select-field"
-      value={novoPedido.clienteId}
-      onChange={(e) => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
-    >
-      <option value="">Selecione o Cliente</option>
-      {clientes.map(cliente => (
-        <option key={cliente.clienteId} value={cliente.clienteId}>
-          {cliente.clienteId} - {cliente.clienteNome}
-        </option>
-      ))}
-    </select>
+      {selectedOption === 'pedidos' && (
+        <div className="form-section">
+          <h2 className="form-title">{pedidoEditando ? "Editar Pedido" : "Adicionar Pedido"}</h2>
+          <label className="label">Selecione o Cliente:</label>
+          <select
+            className="select-field"
+            value={novoPedido.clienteId}
+            onChange={(e) => setNovoPedido({ ...novoPedido, clienteId: e.target.value })}
+          >
+            <option value="">Selecione o Cliente</option>
+            {clientes.map(cliente => (
+              <option key={cliente.clienteId} value={cliente.clienteId}>
+                {cliente.clienteId} - {cliente.clienteNome}
+              </option>
+            ))}
+          </select>
 
-    {/* Selecione os Itens (checkboxes) */}
-    <label className="label">Selecione os Itens:</label>
-    {menu.map(item => (
-      <div key={item.idItem} className="checkbox-item">
-        <input
-          type="checkbox"
-          id={`item-${item.idItem}`}
-          checked={novoPedido.itensPedido.some(i => i.idItem === item.idItem)}
-          onChange={(e) => {
-            if (e.target.checked) {
-              // Adiciona o item ao pedido com quantidade 1
-              setNovoPedido({
-                ...novoPedido,
-                itensPedido: [
-                  ...novoPedido.itensPedido,
-                  { idItem: item.idItem, quantidade: 1 }
-                ]
-              });
-            } else {
-              // Remove o item do pedido
-              setNovoPedido({
-                ...novoPedido,
-                itensPedido: novoPedido.itensPedido.filter(i => i.idItem !== item.idItem)
-              });
-            }
-          }}
-        />
-        <label htmlFor={`item-${item.idItem}`}>{item.idItem} - {item.nomeItem}</label>
-      </div>
-    ))}
+          {novoPedido.itensPedido.map((item, index) => (
+            <div key={index}>
+              <label className="label">Selecione o Item:</label>
+              <select
+                className="select-field"
+                value={item.idItem}
+                onChange={(e) => {
+                  const itensPedido = [...novoPedido.itensPedido];
+                  itensPedido[index].idItem = e.target.value;
+                  setNovoPedido({ ...novoPedido, itensPedido });
+                }}
+              >
+                <option value="">Selecione o Item</option>
+                {menu.map(menuItem => (
+                  <option key={menuItem.idItem} value={menuItem.idItem}>
+                    {menuItem.idItem} - {menuItem.nomeItem}
+                  </option>
+                ))}
+              </select>
 
-    {/* Quantidade para cada item selecionado */}
-    {novoPedido.itensPedido.map((item, index) => (
-      <div key={index}>
-        <label className="label">Quantidade do Item {item.idItem}:</label>
-        <input
-          className="input-field"
-          type="number"
-          value={item.quantidade}
-          onChange={(e) => {
-            const updatedItems = [...novoPedido.itensPedido];
-            updatedItems[index].quantidade = e.target.value;
-            setNovoPedido({
-              ...novoPedido,
-              itensPedido: updatedItems
-            });
-          }}
-        />
-      </div>
-    ))}
+              <label className="label">Quantidade:</label>
+              <input
+                className="input-field"
+                type="number"
+                value={item.quantidade}
+                onChange={(e) => {
+                  const itensPedido = [...novoPedido.itensPedido];
+                  itensPedido[index].quantidade = e.target.value;
+                  setNovoPedido({ ...novoPedido, itensPedido });
+                }}
+              />
+            </div>
+          ))}
 
-    {/* Status do Pedido */}
-    <label className="label">Status:</label>
-    <input
-      className="input-field"
-      type="text"
-      placeholder="Status do Pedido"
-      value={novoPedido.statusPedido}
-      onChange={(e) => setNovoPedido({ ...novoPedido, statusPedido: e.target.value })}
-    />
+          <button className="button" onClick={addItemAoPedido}>Adicionar mais itens</button>
 
-    <button className="button" onClick={pedidoEditando ? updatePedido : addPedido}>
-      {pedidoEditando ? "Salvar Atualização" : "Adicionar Pedido"}
-    </button>
+          <label className="label">Status:</label>
+          <input
+            className="input-field"
+            type="text"
+            placeholder="Status do Pedido"
+            value={novoPedido.statusPedido}
+            onChange={(e) => setNovoPedido({ ...novoPedido, statusPedido: e.target.value })}
+          />
 
-    <h3 className="list-title">Lista de Pedidos</h3>
-    {pedidos.map(pedido => (
-      <div key={pedido.idPedido} className="list-item">
-        <p><strong>Cliente:</strong> {pedido.clientePedido.clienteNome}</p>
-        <p><strong>Itens:</strong> {pedido.itensPedido.map(item => (
-          <span key={item.idItem}>
-            {item.idItem} - Quantidade: {item.quantidade} | SubTotal: R${item.subTotal.toFixed(2)}
-          </span>
-        )).reduce((prev, curr) => [prev, ', ', curr])}</p>
-        <p><strong>Valor Total:</strong> R${pedido.valorTotal.toFixed(2)}</p>
-        <button className="button" onClick={() => preencherFormularioPedido(pedido)}>Editar</button>
-        <button className="button" onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
-      </div>
-    ))}
-  </div>
-)}
+          <button className="button" onClick={pedidoEditando ? updatePedido : addPedido}>
+            {pedidoEditando ? "Salvar Atualização" : "Adicionar Pedido"}
+          </button>
 
+          <h3 className="list-title">Lista de Pedidos</h3>
+          {pedidos.map(pedido => (
+            <div key={pedido.idPedido} className="list-item">
+              <p><strong>Cliente:</strong> {pedido.clientePedido.clienteNome}</p>
+              <p><strong>Itens:</strong> {pedido.itensPedido.map(item => (
+                <span key={item.idItem}>
+                  {item.idItem} - Quantidade: {item.quantidade} | SubTotal: R${item.subTotal.toFixed(2)}
+                </span>
+              )).reduce((prev, curr) => [prev, ', ', curr])}</p>
+              <p><strong>Valor Total:</strong> R${pedido.valorTotal.toFixed(2)}</p>
+              <button className="button" onClick={() => preencherFormularioPedido(pedido)}>Editar</button>
+              <button className="button" onClick={() => deletePedido(pedido.idPedido)}>Deletar</button>
+            </div>
+          ))}
 
+        </div>
+      )}
 
       {/* Formulário de Item */}
       {selectedOption === 'itens' && (
@@ -427,7 +415,6 @@ const App = () => {
       )}
     </div>
   );
-
 };
 
 export default App;
